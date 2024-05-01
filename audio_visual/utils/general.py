@@ -13,6 +13,9 @@ from .metrics import compute_cer, compute_wer
 from .decoders import ctc_greedy_decode, ctc_search_decode
 
 
+import wandb
+wandb.init(project="lrs-phoneme-audiovisual-clarity")
+
 
 def num_params(model):
     """
@@ -62,6 +65,10 @@ def train(model, trainLoader, optimizer, loss_function, device, trainParams):
         predictionBatch, predictionLenBatch = ctc_greedy_decode(outputBatch.detach(), inputLenBatch, trainParams["eosIx"])
         trainingCER = trainingCER + compute_cer(predictionBatch, targetBatch, predictionLenBatch, targetLenBatch)
         trainingWER = trainingWER + compute_wer(predictionBatch, targetBatch, predictionLenBatch, targetLenBatch, trainParams["spaceIx"])
+
+        if batch % 10 == 0:  # log every 10 batches
+            wandb.log({"Training Loss": trainingLoss / (batch+1), "Training CER": trainingCER / (batch+1), "Training WER": trainingWER / (batch+1)})
+       
 
     trainingLoss = trainingLoss/len(trainLoader)
     trainingCER = trainingCER/len(trainLoader)
@@ -114,6 +121,10 @@ def evaluate(model, evalLoader, loss_function, device, evalParams):
 
         evalCER = evalCER + compute_cer(predictionBatch, targetBatch, predictionLenBatch, targetLenBatch)
         evalWER = evalWER + compute_wer(predictionBatch, targetBatch, predictionLenBatch, targetLenBatch, evalParams["spaceIx"])
+
+        if batch % 10 == 0:  # log every 10 batches
+            wandb.log({"Evaluation Loss": evalLoss / (batch+1), "Evaluation CER": evalCER / (batch+1), "Evaluation WER": evalWER / (batch+1)})
+      
 
     evalLoss = evalLoss/len(evalLoader)
     evalCER = evalCER/len(evalLoader)

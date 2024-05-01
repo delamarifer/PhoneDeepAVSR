@@ -13,6 +13,32 @@ from scipy.io import wavfile
 import cv2 as cv
 from scipy.special import softmax
 
+def split_at_apostrophe(word):
+    # Split the word at the first apostrophe
+    parts = word.split("'", 1)  # The second argument 1 means split at the first occurrence only
+    
+    # Check if the split actually found an apostrophe and split the word
+    if len(parts) > 1:
+        # Re-add the apostrophe to the beginning of the second part
+        parts[1] = "'" + parts[1]
+    
+    return parts
+
+WORD_TO_PHONEMES = {}
+
+with open("/om2/user/dlatorre/deep_avsr/audio_only/data/british_phoneme_dict.csv", 'r', encoding='utf-8') as csv_file:
+    for line in csv_file:
+        # Check if the line contains a comma
+        if ', ' in line:
+            # Split the line into word and phonemes_string
+            word, phonemes_string = line.split(', ')
+        
+            phonemes_string = phonemes_string.split(' ')
+            phonemes = [phoneme.strip() for phoneme in phonemes_string]
+            WORD_TO_PHONEMES[word] = phonemes
+
+
+word_to_phoneme = WORD_TO_PHONEMES
 
 
 def prepare_main_input(audioFile, visualFeaturesFile, targetFile, noise, reqInpLen, charToIx, noiseSNR, audioParams, videoParams):
@@ -26,10 +52,40 @@ def prepare_main_input(audioFile, visualFeaturesFile, targetFile, noise, reqInpL
         #reading the target from the target file and converting each character to its corresponding index
         with open(targetFile, "r") as f:
             trgt = f.readline().strip()[7:]
+            
+        trgt_list = []
+        # Convert the word transcription into phoneme indices
+        for word in trgt.split(" "):
+            if word in word_to_phoneme:
+                phonemes = word_to_phoneme.get(word)  # Get the phonemic representation, ensure word is uppercase
+                for phoneme in phonemes:  # Assuming phonemes are separated by spaces in the CSV
+                    ix = charToIx.get(phoneme)
+                    if ix is not None:
+                        trgt_list.append(ix)
+                    else:
+                        print(f"Phoneme {phoneme} not found in phoneme_to_ix dictionary.")
+                trgt_list.append(charToIx.get(' ')) 
+            else:
+                if "'" in word:
+                    words = split_at_apostrophe(word)
+                    # print(words, "after split")
+                    for wordlevel2 in words:
+                        if wordlevel2 in word_to_phoneme:
+                            phonemes = word_to_phoneme.get(wordlevel2) 
+                            # print(phonemes, "after word")
+                            for phoneme in phonemes:  # Assuming phonemes are separated by spaces in the CSV
+                                ix = charToIx.get(phoneme)
+                                if ix is not None:
+                                    trgt_list.append(ix)
+                                else:
+                                    print(f"Phoneme {phoneme} not found in phoneme_to_ix dictionary.")
 
-        trgt = [charToIx[char] for char in trgt]
-        trgt.append(charToIx["<EOS>"])
-        trgt = np.array(trgt)
+                        else:
+                            print(wordlevel2, " not found in word_to_phoneme")
+                trgt_list.append(charToIx.get(' ')) 
+               
+            
+        trgt = np.array(trgt_list)
         trgtLen = len(trgt)
 
         #the target length must be less than or equal to 100 characters (restricted space where our model will work)

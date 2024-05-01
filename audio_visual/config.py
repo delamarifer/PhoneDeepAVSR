@@ -9,28 +9,28 @@ args = dict()
 
 
 #project structure
-args["CODE_DIRECTORY"] = None   #absolute path to the code directory
-args["DATA_DIRECTORY"] = None   #absolute path to the data directory
-args["DEMO_DIRECTORY"] = None   #absolute path to the demo directory
-args["PRETRAINED_MODEL_FILE"] = "/final/models/pretrained_model.pt"     #relative path to the pretrained model file
-args["TRAINED_MODEL_FILE"] = "/final/models/trained_model.pt"   #relative path to the trained model file
+args["CODE_DIRECTORY"] = "/om2/user/dlatorre/deep_avsr/audio_visual/"   #absolute path to the code directory
+args["DATA_DIRECTORY"] = "/om2/data/public/lrs/mvlrs_v1"   #absolute path to the data directory
+args["DEMO_DIRECTORY"] = "/om2/user/dlatorre/deep_avsr/audio_visua/"   #absolute path to the demo directory
+args["PRETRAINED_MODEL_FILE"] = None
+args["TRAINED_MODEL_FILE"] = None  #relative path to the trained model file
 args["TRAINED_LM_FILE"] = None  #absolute path to the trained language model file
 args["TRAINED_FRONTEND_FILE"] = None #absolute path to the trained visual frontend file
 
-
+# args["PRETRAINED_MODEL_FILE"] = "/final/models/audio-visual.pt" 
 #data
 args["PRETRAIN_VAL_SPLIT"] = 0.01   #validation set size fraction during pretraining
 args["NUM_WORKERS"] = 8 #dataloader num_workers argument
 args["PRETRAIN_NUM_WORDS"] = 1  #number of words limit in current curriculum learning iteration
 args["MAIN_REQ_INPUT_LENGTH"] = 145 #minimum input length while training
-args["CHAR_TO_INDEX"] = {" ":1, "'":22, "1":30, "0":29, "3":37, "2":32, "5":34, "4":38, "7":36, "6":35, "9":31, "8":33,
-                         "A":5, "C":17, "B":20, "E":2, "D":12, "G":16, "F":19, "I":6, "H":9, "K":24, "J":25, "M":18,
-                         "L":11, "O":4, "N":7, "Q":27, "P":21, "S":8, "R":10, "U":13, "T":3, "W":15, "V":23, "Y":14,
-                         "X":26, "Z":28, "<EOS>":39}    #character to index mapping
-args["INDEX_TO_CHAR"] = {1:" ", 22:"'", 30:"1", 29:"0", 37:"3", 32:"2", 34:"5", 38:"4", 36:"7", 35:"6", 31:"9", 33:"8",
-                         5:"A", 17:"C", 20:"B", 2:"E", 12:"D", 16:"G", 19:"F", 6:"I", 9:"H", 24:"K", 25:"J", 18:"M",
-                         11:"L", 4:"O", 7:"N", 27:"Q", 21:"P", 8:"S", 10:"R", 13:"U", 3:"T", 15:"W", 23:"V", 14:"Y",
-                         26:"X", 28:"Z", 39:"<EOS>"}    #index to character reverse mapping
+# args["CHAR_TO_INDEX"] = {" ":1, "'":22, "1":30, "0":29, "3":37, "2":32, "5":34, "4":38, "7":36, "6":35, "9":31, "8":33,
+#                          "A":5, "C":17, "B":20, "E":2, "D":12, "G":16, "F":19, "I":6, "H":9, "K":24, "J":25, "M":18,
+#                          "L":11, "O":4, "N":7, "Q":27, "P":21, "S":8, "R":10, "U":13, "T":3, "W":15, "V":23, "Y":14,
+#                          "X":26, "Z":28, "<EOS>":39}    #character to index mapping
+# args["INDEX_TO_CHAR"] = {1:" ", 22:"'", 30:"1", 29:"0", 37:"3", 32:"2", 34:"5", 38:"4", 36:"7", 35:"6", 31:"9", 33:"8",
+#                          5:"A", 17:"C", 20:"B", 2:"E", 12:"D", 16:"G", 19:"F", 6:"I", 9:"H", 24:"K", 25:"J", 18:"M",
+#                          11:"L", 4:"O", 7:"N", 27:"Q", 21:"P", 8:"S", 10:"R", 13:"U", 3:"T", 15:"W", 23:"V", 14:"Y",
+#                          26:"X", 28:"Z", 39:"<EOS>"}    #index to character reverse mapping
 
 
 #audio preprocessing
@@ -95,6 +95,19 @@ args["TEST_DEMO_DECODING"] = "greedy"   #test/demo decoding type - "greedy" or "
 args["TEST_DEMO_NOISY"] = False #test/demo with noisy audio
 args["TEST_DEMO_MODE"] = "AV"   #mode to use AV model in - "AO" or "VO" or "AV"
 
+
+
+
+list_phonemes = ["<BLANK>", " ","aɪ","aʊ","b","d","dʒ","eɪ","f","g","h","i","iː","j","k","l","m","n","p","s","t","tʃ","uː","v","w","z","æ","ð","ŋ","ɐ","ɑː","ɒ","ɔɪ","ɔː","ə","əʊ","ɛ","ɛə","ɜː","ɪ","ɪə","ɹ","ʃ","ʊ","ʊə","ʒ","ˈaɪ","ˈaʊ","ˈeɪ","ˈiː","ˈuː","ˈæ","ˈɐ","ˈɑː","ˈɒ","ˈɔɪ","ˈɔː","ˈə","ˈəʊ","ˈɛ","ˈɛə","ˈɜː","ˈɪ","ˈɪə","ˈʊ","ˈʊə","ˌaɪ","ˌaʊ","ˌeɪ","ˌiː","ˌuː","ˌæ","ˌɐ","ˌɑː","ˌɒ","ˌɔɪ","ˌɔː","ˌəʊ","ˌɛ","ˌɛə","ˌɜː","ˌɪ","ˌɪə","ˌʊ","ˌʊə","θ", "<EOS>"]
+
+PHON_TO_IX = {phoneme: ix for ix, phoneme in enumerate(list_phonemes, start=1)}
+PHON_TO_IX["<BLANK>"] = 0
+
+IX_TO_PHON = {v: k for k, v in PHON_TO_IX.items()}
+
+args["CHAR_TO_INDEX"] = PHON_TO_IX  #character to index mapping
+args["INDEX_TO_CHAR"] = IX_TO_PHON    #index to character reverse mapping
+args["NUM_PHON_CLASSES"] = len(PHON_TO_IX) + 1    #number of output characters
 
 if __name__ == "__main__":
 

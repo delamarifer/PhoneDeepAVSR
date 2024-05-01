@@ -37,11 +37,11 @@ def main():
     #declaring the train and validation datasets and their corresponding dataloaders
     audioParams = {"stftWindow":args["STFT_WINDOW"], "stftWinLen":args["STFT_WIN_LENGTH"], "stftOverlap":args["STFT_OVERLAP"]}
     videoParams = {"videoFPS":args["VIDEO_FPS"]}
-    noiseParams = {"noiseFile":args["DATA_DIRECTORY"] + "/noise.wav", "noiseProb":args["NOISE_PROBABILITY"], "noiseSNR":args["NOISE_SNR_DB"]}
+    noiseParams = {"noiseFile":"/om2/data/public/mvlrs_permitted" + "/noise.wav", "noiseProb":args["NOISE_PROBABILITY"], "noiseSNR":args["NOISE_SNR_DB"]}
     trainData = LRS2Main("train", args["DATA_DIRECTORY"], args["MAIN_REQ_INPUT_LENGTH"], args["CHAR_TO_INDEX"], args["STEP_SIZE"],
                          audioParams, videoParams, noiseParams)
     trainLoader = DataLoader(trainData, batch_size=args["BATCH_SIZE"], collate_fn=collate_fn, shuffle=True, **kwargs)
-    noiseParams = {"noiseFile":args["DATA_DIRECTORY"] + "/noise.wav", "noiseProb":0, "noiseSNR":args["NOISE_SNR_DB"]}
+    noiseParams = {"noiseFile":"/om2/data/public/mvlrs_permitted" + "/noise.wav", "noiseProb":0, "noiseSNR":args["NOISE_SNR_DB"]}
     valData = LRS2Main("val", args["DATA_DIRECTORY"], args["MAIN_REQ_INPUT_LENGTH"], args["CHAR_TO_INDEX"], args["STEP_SIZE"],
                        audioParams, videoParams, noiseParams)
     valLoader = DataLoader(valData, batch_size=args["BATCH_SIZE"], collate_fn=collate_fn, shuffle=True, **kwargs)
@@ -60,14 +60,14 @@ def main():
 
     #removing the checkpoints directory if it exists and remaking it
     if os.path.exists(args["CODE_DIRECTORY"] + "/checkpoints"):
-        while True:
-            ch = input("Continue and remove the 'checkpoints' directory? y/n: ")
-            if ch == "y":
-                break
-            elif ch == "n":
-                exit()
-            else:
-                print("Invalid input")
+        # while True:
+        #     ch = input("Continue and remove the 'checkpoints' directory? y/n: ")
+        #     if ch == "y":
+        #         break
+        #     elif ch == "n":
+        #         exit()
+        #     else:
+        #         print("Invalid input")
         shutil.rmtree(args["CODE_DIRECTORY"] + "/checkpoints")
 
     os.mkdir(args["CODE_DIRECTORY"] + "/checkpoints")
@@ -83,7 +83,8 @@ def main():
         model.to(device)
         print("Loading Done.\n")
 
-
+    model.outputConv = nn.Conv1d(args["TX_NUM_FEATURES"], args["NUM_PHON_CLASSES"], kernel_size=1, stride=1, padding=0)
+    model.to(device)
 
     trainingLossCurve = list()
     validationLossCurve = list()
